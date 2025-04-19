@@ -1,0 +1,39 @@
+
+
+#Connection pool
+spring:
+  servlet:
+    multipart:
+      enabled: true
+      max-file-size: 5MB
+      max-request-size: 50MB
+
+
+  config:
+    import: optional:file:external-db.yml
+
+  #JPA Config
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+  sql:
+    init:
+      mode: never
+
+  output:
+    ansi:
+      enabled: always
+
+
+logging:
+  level:
+    org.dal: INFO
+    org.springframework.security: TRACE
+
+org:
+  dal:
+    upload: upload
