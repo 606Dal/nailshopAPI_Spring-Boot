@@ -9,6 +9,7 @@ public class ProductListAllDTO {
 
     private Long pno;
     private String pname;
+    private String pdesc;
     private int price;
     private List<String> imgNames;
 

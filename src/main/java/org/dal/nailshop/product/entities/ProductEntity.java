@@ -24,6 +24,7 @@ public class ProductEntity extends BaseEntity {
     private Long pno;
 
     private String pname;
+    private String pdesc;
 
     private int price;
 
@@ -35,7 +36,6 @@ public class ProductEntity extends BaseEntity {
     @Builder.Default
     private List<ProductImage> images = new ArrayList<>();
 
-    // UUID 비슷
     public void addImage(String fileName) {
         ProductImage image = new ProductImage();
         image.setImgName(fileName);
@@ -51,6 +51,9 @@ public class ProductEntity extends BaseEntity {
 
     public void changePname(String pname) {
         this.pname = pname;
+    }
+    public void changePdesc(String pdesc) {
+        this.pdesc = pdesc;
     }
 
     public void changePrice(int price) {

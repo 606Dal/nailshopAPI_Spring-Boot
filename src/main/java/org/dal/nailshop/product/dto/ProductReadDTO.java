@@ -13,6 +13,7 @@ public class ProductReadDTO {
     private Long pno;
 
     private String pname;
+    private String pdesc;
 
     private int price;
 
@@ -24,6 +25,7 @@ public class ProductReadDTO {
     public ProductReadDTO(ProductEntity entity) {
         this.pno = entity.getPno();
         this.pname = entity.getPname();
+        this.pdesc = entity.getPdesc();
         this.price = entity.getPrice();
         this.regDate = entity.getRegDate();
         this.modDate = entity.getModDate();

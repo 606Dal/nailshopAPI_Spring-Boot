@@ -13,6 +13,7 @@ import org.dal.nailshop.product.repository.ProductReviewRepository;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.annotation.Commit;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Optional;
@@ -35,10 +36,11 @@ public class ProductRepoTests {
 //    @Commit
     public void insertProduct() {
 
-        for (int i = 0; i < 30; i++) {
+        for (int i = 0; i < 2; i++) {
             ProductEntity product = ProductEntity.builder()
                     .pname("Product" + i )
-                    .price(5000)
+                    .pdesc("tsetDesc")
+                    .price(7000)
                     .build();
             product.addImage(i + "_img0.jpg");
             product.addImage(i + "_img1.jpg");
@@ -50,7 +52,7 @@ public class ProductRepoTests {
     @Test
     public void readProduct() {
 
-        ProductEntity product = repo.selectOne(1L);
+        ProductEntity product = repo.selectOne(32L);
         ProductReadDTO dto = new ProductReadDTO(product);
 
         log.info(dto);
@@ -97,7 +99,8 @@ public class ProductRepoTests {
         PageRequestDTO requestDTO = new PageRequestDTO();
         requestDTO.setPage(1);
         requestDTO.setSize(10);
-        requestDTO.setKeyword("6");
+        requestDTO.setType("PRICE");
+        requestDTO.setKeyword("7000");
 
         PageResponseDTO<ProductListDTO> result = repo.productList(requestDTO);
 
@@ -109,6 +112,10 @@ public class ProductRepoTests {
     public void testAllList() {
 
         PageRequestDTO requestDTO = new PageRequestDTO();
+        requestDTO.setPage(1);
+        requestDTO.setSize(10);
+        requestDTO.setType("PNAME");
+        requestDTO.setKeyword("1");
 
         PageResponseDTO<ProductListAllDTO> result = repo.listAllImages(requestDTO);
 
@@ -121,9 +128,10 @@ public class ProductRepoTests {
     @Test
     public void testUpdateProduct() {
 
-        ProductEntity product = repo.selectOne(1L);
+        ProductEntity product = repo.selectOne(2L);
 
         product.changePname("Updated Product");
+        product.changePdesc("정보 수정");
         product.changePrice(7000);
         product.clearImages(); // 기존 이미지 제거
         product.addImage("11_1.jpg");
@@ -132,9 +140,10 @@ public class ProductRepoTests {
         repo.save(product);
 
         // 검증
-        ProductEntity updated = repo.selectOne(1L);
+        ProductEntity updated = repo.selectOne(2L);
 
         assertThat(updated.getPname()).isEqualTo("Updated Product");
+        assertThat(updated.getPdesc()).isEqualTo("정보 수정");
         assertThat(updated.getPrice()).isEqualTo(7000);
         assertThat(updated.getImages()).hasSize(2);
         assertThat(updated.getImages().get(0).getImgName()).isEqualTo("11_1.jpg");

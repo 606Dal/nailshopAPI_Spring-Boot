@@ -1,5 +1,6 @@
 package org.dal.nailshop.product.repository;
 
+import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.Tuple;
 import com.querydsl.core.types.Order;
 import com.querydsl.core.types.OrderSpecifier;
@@ -40,10 +41,24 @@ public class ProductSearchImpl implements ProductSearch {
 
         query.where(qProductImage.ord.eq(0));
 
-        // 검색 조건 - 일단 상품 명만
-        if (pageRequestDTO.getKeyword() != null && !pageRequestDTO.getKeyword().isEmpty()) {
-            query.where(qProductEntity.pname.containsIgnoreCase(pageRequestDTO.getKeyword()));
-        }
+        // 검색 조건 - 일단 상품 명과 가격만
+        String keyword = pageRequestDTO.getKeyword();
+        String type = pageRequestDTO.getType();
+
+        if (keyword != null && !keyword.isEmpty() && type != null) {
+            BooleanBuilder builder = new BooleanBuilder();
+
+            if (type.contains("PNAME")) {
+                builder.or(qProductEntity.pname.containsIgnoreCase(keyword));
+            }
+
+            if (type.contains("PRICE") && keyword.matches("\\d+")) { // 숫자만 포함된 경우에만
+                int price = Integer.parseInt(keyword);
+                builder.or(qProductEntity.price.eq(price));
+            }
+
+            query.where(builder);
+        } // end if
 
         // 상품 단위로 처리
         query.groupBy(qProductEntity);
@@ -55,6 +70,7 @@ public class ProductSearchImpl implements ProductSearch {
         JPQLQuery<ProductListDTO> dtoQuery = query.select(Projections.bean(ProductListDTO.class,
                 qProductEntity.pno,
                 qProductEntity.pname,
+                qProductEntity.pdesc,
                 qProductEntity.price,
                 qProductImage.imgName.as("imgName"),
                 qProductReview.score.coalesce(0).avg().as("avgRating"), // null인 경우 0으로 처리
@@ -82,6 +98,25 @@ public class ProductSearchImpl implements ProductSearch {
         query.leftJoin(qProductReview).on(qProductReview.product.eq(qProductEntity));
         query.leftJoin(qProductEntity.images, qProductImage);
 
+        // 검색 조건 - 일단 상품 명과 가격만
+        String keyword = pageRequestDTO.getKeyword();
+        String type = pageRequestDTO.getType();
+
+        if (keyword != null && !keyword.isEmpty() && type != null) {
+            BooleanBuilder builder = new BooleanBuilder();
+
+            if (type.contains("PNAME")) {
+                builder.or(qProductEntity.pname.containsIgnoreCase(keyword));
+            }
+
+            if (type.contains("PRICE") && keyword.matches("\\d+")) { // 숫자만 포함된 경우에만
+                int price = Integer.parseInt(keyword);
+                builder.or(qProductEntity.price.eq(price));
+            }
+
+            query.where(builder);
+        } // end if
+
         query.groupBy(qProductEntity);
         query.limit(pageRequestDTO.getLimit());
         query.offset(pageRequestDTO.getOffset());
@@ -106,6 +141,7 @@ public class ProductSearchImpl implements ProductSearch {
 
             productListAllDTO.setPno(product.getPno());
             productListAllDTO.setPname(product.getPname());
+            productListAllDTO.setPdesc(product.getPdesc());
             productListAllDTO.setPrice(product.getPrice());
             productListAllDTO.setImgNames(imageNames);
             productListAllDTO.setAvgRating(avgRating);
