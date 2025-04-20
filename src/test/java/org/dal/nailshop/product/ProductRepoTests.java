@@ -13,9 +13,14 @@ import org.dal.nailshop.product.repository.ProductReviewRepository;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.test.annotation.Commit;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -27,10 +32,6 @@ public class ProductRepoTests {
 
     @Autowired(required = false)
     ProductRepository repo;
-
-    @Autowired(required = false)
-    ProductReviewRepository reviewRepo;
-
 
     @Test
 //    @Commit
@@ -57,41 +58,6 @@ public class ProductRepoTests {
 
         log.info(dto);
     }
-
-    @Test
-//    @Commit
-    public void insertReviews() {
-
-        Long[] pnos  = {7L, 30L, 27L};
-
-        for (Long pno : pnos) {
-
-            for (int i = 0; i < 10; i++) {
-
-                ProductReviewEntity pr = ProductReviewEntity.builder()
-                        .reviewer("user00")
-                        .comment("Good")
-                        .score( (i % 5) +1 )
-                        .product(ProductEntity.builder().pno(pno).build())
-                        .build();
-
-                reviewRepo.save(pr);
-
-            }//for inner
-
-        }//for outer
-    }
-
-//    @Test
-//    public void testList() {
-//
-//        Pageable pageable = PageRequest.of(0, 10, Sort.by("pno").descending());
-//
-//        Page<Object[]> result = repo.list(pageable);
-//
-//        result.forEach(arr -> log.info(Arrays.toString(arr)));
-//
-//    }
 
     @Test
     public void testProductSearchList() {
@@ -122,7 +88,6 @@ public class ProductRepoTests {
         result.getDtoList().forEach(dto -> {
             log.info(dto);
         });
-
     }
 
     @Test

@@ -1,15 +1,19 @@
 package org.dal.nailshop.product.service;
 
-
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import net.coobird.thumbnailator.Thumbnails;
 import org.dal.nailshop.common.dto.PageRequestDTO;
 import org.dal.nailshop.common.dto.PageResponseDTO;
-import org.dal.nailshop.product.dto.*;
-import org.dal.nailshop.product.entities.ProductEntity;
-import org.dal.nailshop.product.entities.ProductImage;
-import org.dal.nailshop.product.repository.ProductRepository;
+import org.dal.nailshop.product.dto.ProductReviewAddDTO;
+import org.dal.nailshop.product.dto.ProductReviewListDTO;
+import org.dal.nailshop.product.dto.ProductReviewModifyDTO;
+import org.dal.nailshop.product.dto.ProductReviewReadDTO;
+import org.dal.nailshop.product.entities.ProductReviewEntity;
+import org.dal.nailshop.product.entities.ProductReviewImage;
+import org.dal.nailshop.product.repository.ProductReviewRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -22,20 +26,57 @@ import java.util.NoSuchElementException;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-@Transactional
 @Service
+@Transactional
 @Log4j2
 @RequiredArgsConstructor
-public class ProductServiceImpl implements ProductService {
+public class ProductReviewServiceImpl implements ProductReviewService {
 
-    private final ProductRepository repository;
+    private final ProductReviewRepository reviewRepository;
 
     @Override
-    public Long add(ProductAddDTO dto) {
+    public Page<ProductReviewListDTO> getListOfProduct(Long pno, Pageable pageable) {
 
-        ProductEntity productEntity = addDTOToEntity(dto);
+        if (pno == null) {
+            throw new NoSuchElementException("해당 상품이 없습니다.");
+        }
 
-        String uploadDir = "C:\\nginx-1.26.3\\html\\uploads";
+        return reviewRepository.findByProductPno(pno, pageable);
+    }
+
+    @Transactional(readOnly = true)
+    @Override
+    public PageResponseDTO<ProductReviewListDTO> reviewList(Long pno, PageRequestDTO pageRequestDTO) {
+
+        if (pno == null) {
+            throw new NoSuchElementException("해당 상품이 없습니다.");
+        }
+
+        return reviewRepository.reviewList(pno, pageRequestDTO);
+    }
+
+    @Override
+    public ProductReviewReadDTO readReview(Long rno) {
+
+        if (rno == null) {
+            throw new NoSuchElementException("리뷰 번호(rno)가 없습니다.");
+        }
+
+        ProductReviewReadDTO dto = reviewRepository.selectOne(rno);
+
+        if (dto != null) {
+            return dto;
+        } else {
+            throw new NoSuchElementException("리뷰를 찾을 수 없습니다.");
+        }
+    }
+
+    @Override
+    public Long add(ProductReviewAddDTO dto) {
+
+        ProductReviewEntity reviewEntity = addDTOToEntity(dto);
+
+        String uploadDir = "C:\\nginx-1.26.3\\html\\reviewuploads";
 
         // 저장 경로
         File uploadPath = new File(uploadDir);
@@ -69,66 +110,31 @@ public class ProductServiceImpl implements ProductService {
                         .toFile(thumbFile);
 
             } catch (IOException e) {
-                throw new RuntimeException("상품 이미지 저장 중 오류 발생" + savedName, e);
+                throw new RuntimeException("리뷰 이미지 저장 중 오류 발생" + savedName, e);
             }
 
             // DB에는 파일명만 저장
-            productEntity.addImage(savedName);
+            reviewEntity.addImage(savedName);
             dto.getImageNames().add(savedName);
         } // end for
 
-        repository.save(productEntity);
+        reviewRepository.save(reviewEntity);
 
-        return productEntity.getPno();
+        return reviewEntity.getRno();
     }
 
     @Override
-    public ProductReadDTO read(Long pno) {
+    public void modify(ProductReviewModifyDTO dto) {
 
-        if (pno == null) {
-            throw new NoSuchElementException("해당 상품이 없습니다.");
-        }
+        Long rno = dto.getRno();
 
-        return new ProductReadDTO(repository.selectOne(pno));
-    }
-
-    @Override
-    public PageResponseDTO<ProductListDTO> listProducts(PageRequestDTO pageRequestDTO) {
-
-        PageResponseDTO<ProductListDTO> dto = repository.productList(pageRequestDTO);
-
-        if (dto != null) {
-            return dto;
-        } else {
-            throw new NoSuchElementException("상품 목록을 찾을 수 없습니다.");
-        }
-
-    }
-
-    @Transactional(readOnly = true)
-    @Override
-    public PageResponseDTO<ProductListAllDTO> listProductsWithAllImages(PageRequestDTO pageRequestDTO) {
-
-        PageResponseDTO<ProductListAllDTO> dto = repository.listAllImages(pageRequestDTO);
-
-        if (dto != null) {
-            return dto;
-        } else {
-            throw new NoSuchElementException("상품 목록을 찾을 수 없습니다.");
-        }
-    }
-
-    @Override
-    public void modify(ProductModifyDTO dto) {
-
-        Long pno = dto.getPno();
-
-        ProductEntity productEntity = repository.selectOne(pno);
+        ProductReviewEntity reviewEntity = reviewRepository.findById(rno)
+                .orElseThrow(() -> new IllegalArgumentException("리뷰 없음"));
 
         // 기존의 파일들을 알아놓아야, 필요 없는 파일 삭제 가능.
-        List<String> oldFiles = productEntity.getImages()
+        List<String> oldFiles = reviewEntity.getImages()
                 .stream()
-                .map(ProductImage::getImgName)
+                .map(ProductReviewImage::getImgName)
                 .collect(Collectors.toList());
         log.info("기존 파일들 이름: {}", oldFiles);
 
@@ -138,10 +144,10 @@ public class ProductServiceImpl implements ProductService {
         List<String> uploadedFileNames = new ArrayList<>();
 
         // 이미지 파일 업로드 경로
-        String uploadDir = "C:\\nginx-1.26.3\\html\\uploads";
+        String uploadDir = "C:\\nginx-1.26.3\\html\\reviewuploads";
 
         // 기존 이미지 삭제
-        productEntity.clearImages();
+        reviewEntity.clearImages();
 
         for (MultipartFile file : files) {
             if (file.isEmpty()) continue;
@@ -178,12 +184,11 @@ public class ProductServiceImpl implements ProductService {
         log.info("----------상품 수정------------");
         log.info(dto);
 
-        productEntity.changePname(dto.getPname());
-        productEntity.changePdesc(dto.getPdesc());
-        productEntity.changePrice(dto.getPrice());
-        dto.getImageNames().forEach(imgName -> productEntity.addImage(imgName));
+        reviewEntity.changeComment(dto.getComment());
+        reviewEntity.changeScore(dto.getScore());
+        dto.getImageNames().forEach(imgName -> reviewEntity.addImage(imgName));
 
-        repository.save(productEntity);
+        reviewRepository.save(reviewEntity);
 
         // 수정 후 유지해야 하는 파일 목록. 기존에 존재했지만 화면에서 삭제된 파일들은 지워야 함.
         List<String> imagesToKeep = dto.getImageNames();
@@ -202,7 +207,5 @@ public class ProductServiceImpl implements ProductService {
             new File(uploadDir + "\\" + targetFile).delete();
             new File(uploadDir + "\\s_" + targetFile).delete(); // 썸네일도 같이 삭제
         });
-
-
     }
 }

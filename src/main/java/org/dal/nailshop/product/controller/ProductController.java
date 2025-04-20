@@ -5,6 +5,7 @@ import lombok.extern.log4j.Log4j2;
 import org.dal.nailshop.common.dto.PageRequestDTO;
 import org.dal.nailshop.common.dto.PageResponseDTO;
 import org.dal.nailshop.product.dto.*;
+import org.dal.nailshop.product.service.ProductReviewService;
 import org.dal.nailshop.product.service.ProductService;
 import org.dal.nailshop.todo.dto.ActionResultDTO;
 import org.springframework.http.ResponseEntity;
@@ -19,6 +20,8 @@ import java.util.List;
 public class ProductController {
 
     private final ProductService service;
+
+    private final ProductReviewService reviewService;
 
     @GetMapping("list")
     public ResponseEntity<PageResponseDTO<ProductListDTO>> list(PageRequestDTO requestDTO) {
@@ -50,7 +53,7 @@ public class ProductController {
                 .build());
     }
 
-    @GetMapping("read/{pno}")
+    @GetMapping("/{pno}")
     public ResponseEntity<ProductReadDTO> read(@PathVariable Long pno) {
 
         ProductReadDTO dto = service.read(pno);
@@ -71,8 +74,15 @@ public class ProductController {
 
         return ResponseEntity.ok(ActionResultDTO.<Long>builder()
                 .result("Update Success")
+                .data(dto.getPno())
                 .build()
         );
+    }
+
+    @GetMapping("{pno}/reviews")
+    public ResponseEntity<PageResponseDTO<ProductReviewListDTO>> reviewList(@PathVariable Long pno, PageRequestDTO requestDTO) {
+
+        return ResponseEntity.ok(reviewService.reviewList(pno, requestDTO));
     }
 
 }

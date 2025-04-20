@@ -22,9 +22,19 @@ public class QProductReviewEntity extends EntityPathBase<ProductReviewEntity> {
 
     public static final QProductReviewEntity productReviewEntity = new QProductReviewEntity("productReviewEntity");
 
+    public final org.dal.nailshop.todo.entities.QBaseEntity _super = new org.dal.nailshop.todo.entities.QBaseEntity(this);
+
     public final StringPath comment = createString("comment");
 
+    public final ListPath<ProductReviewImage, QProductReviewImage> images = this.<ProductReviewImage, QProductReviewImage>createList("images", ProductReviewImage.class, QProductReviewImage.class, PathInits.DIRECT2);
+
+    //inherited
+    public final DateTimePath<java.time.LocalDateTime> modDate = _super.modDate;
+
     public final QProductEntity product;
+
+    //inherited
+    public final DateTimePath<java.time.LocalDateTime> regDate = _super.regDate;
 
     public final StringPath reviewer = createString("reviewer");
 
