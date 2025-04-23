@@ -12,6 +12,7 @@ import java.util.List;
 @Data
 public class ProductReviewModifyDTO {
 
+    @NotNull(message = "리뷰 번호는 필수입니다.")
     private Long rno;
 
     @Range(min = 1, max = 5, message = "점수는 1~5 사이의 숫자만 가능합니다.")

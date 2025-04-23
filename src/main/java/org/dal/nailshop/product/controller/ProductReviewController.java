@@ -1,9 +1,9 @@
 package org.dal.nailshop.product.controller;
 
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
-import org.dal.nailshop.product.dto.ProductModifyDTO;
 import org.dal.nailshop.product.dto.ProductReviewAddDTO;
 import org.dal.nailshop.product.dto.ProductReviewModifyDTO;
 import org.dal.nailshop.product.service.ProductReviewService;
@@ -20,7 +20,7 @@ public class ProductReviewController {
     private final ProductReviewService reviewService;
 
     @PostMapping("")
-    public ResponseEntity<ActionResultDTO<Long>> add(@ModelAttribute ProductReviewAddDTO dto) {
+    public ResponseEntity<ActionResultDTO<Long>> add(@ModelAttribute @Valid ProductReviewAddDTO dto) {
 
         log.info("===========post review==============");
         log.info(dto.toString());
@@ -34,7 +34,7 @@ public class ProductReviewController {
     }
 
     @PutMapping("modify/{rno}")
-    public ResponseEntity<ActionResultDTO<Long>> modify(@ModelAttribute ProductReviewModifyDTO dto) {
+    public ResponseEntity<ActionResultDTO<Long>> modify(@ModelAttribute @Valid ProductReviewModifyDTO dto) {
 
         log.info("imageNames in controller: {}", dto.getImageNames());
 

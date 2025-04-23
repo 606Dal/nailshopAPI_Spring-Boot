@@ -1,5 +1,6 @@
 package org.dal.nailshop.product.controller;
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.dal.nailshop.common.dto.PageRequestDTO;
@@ -40,7 +41,7 @@ public class ProductController {
     }
 
     @PostMapping("add")
-    public ResponseEntity<ActionResultDTO<Long>> add(@ModelAttribute ProductAddDTO dto) {
+    public ResponseEntity<ActionResultDTO<Long>> add(@ModelAttribute @Valid ProductAddDTO dto) {
 
         log.info("===========post==============");
         log.info(dto.toString());
@@ -66,7 +67,7 @@ public class ProductController {
     }
 
     @PutMapping("modify/{pno}")
-    public ResponseEntity<ActionResultDTO<Long>> modify(@ModelAttribute ProductModifyDTO dto) {
+    public ResponseEntity<ActionResultDTO<Long>> modify(@ModelAttribute @Valid ProductModifyDTO dto) {
 
         log.info("imageNames in controller: {}", dto.getImageNames());
 
